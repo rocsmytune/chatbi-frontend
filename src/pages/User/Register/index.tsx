@@ -1,29 +1,15 @@
 import Footer from '@/components/Footer';
 import { listChartByPageUsingPost } from '@/services/chatbi/chartController';
-import {userRegisterUsingPost} from '@/services/chatbi/userController';
-import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { LoginForm, ProFormText } from '@ant-design/pro-components';
+import { userRegisterUsingPost } from '@/services/chatbi/userController';
+import { LockOutlined,UserOutlined } from '@ant-design/icons';
+import { LoginForm,ProFormText } from '@ant-design/pro-components';
 import { useEmotionCss } from '@ant-design/use-emotion-css';
-import { Helmet, history } from '@umijs/max';
-import { Alert, message, Tabs } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Helmet,history } from '@umijs/max';
+import { message,Tabs } from 'antd';
+import React,{ useEffect,useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
 
-const RegisterMessage: React.FC<{
-  content: string;
-}> = ({ content }) => {
-  return (
-    <Alert
-      style={{
-        marginBottom: 24,
-      }}
-      message={content}
-      type="error"
-      showIcon
-    />
-  );
-};
-const Register: React.FC = () => {
+const Login: React.FC = () => {
   const [type, setType] = useState<string>('account');
   const containerClassName = useEmotionCss(() => {
     return {
@@ -44,21 +30,35 @@ const Register: React.FC = () => {
   });
 
   const handleSubmit = async (values: API.UserRegisterRequest) => {
+    const {userPassword, checkPassword,userAccount} = values;
+    // 校验
+    // @ts-ignore
+    if(userAccount.length < 4) {
+      message.error('用户账号过短');
+      return;
+    }
+    if (userPassword !== checkPassword) {
+      message.error('两次输入的密码不一致');
+      return;
+    }
+
     try {
       // 注册
       const res = await userRegisterUsingPost(values);
-      if (res.code === 0) {
-        const defaultRegisterSuccessMessage = '注册成功！';
-        message.success(defaultRegisterSuccessMessage);
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/');
+      if (res.code != 40000) {
+        const defaultLoginSuccessMessage = '注册成功！';
+        message.success(defaultLoginSuccessMessage);
+        /** 此方法会跳转到 redirect 参数所在的位置 */
+        if (!history) return;
+        history.push({
+          pathname: '/user/login',
+        });
         return;
-      } else {
-        message.error(res.message);
+      }else {
+        message.error(res.message)
       }
-    } catch (error) {
+    } catch (error: any) {
       const defaultLoginFailureMessage = '注册失败，请重试！';
-      console.log(error);
       message.error(defaultLoginFailureMessage);
     }
   };
@@ -76,6 +76,11 @@ const Register: React.FC = () => {
         }}
       >
         <LoginForm
+          submitter={{
+            searchConfig: {
+              submitText: '注册'
+            }
+          }}
           contentStyle={{
             minWidth: 280,
             maxWidth: '75vw',
@@ -94,11 +99,10 @@ const Register: React.FC = () => {
             items={[
               {
                 key: 'account',
-                label: '账户注册',
+                label: '账户密码注册',
               },
             ]}
           />
-
           {type === 'account' && (
             <>
               <ProFormText
@@ -107,11 +111,11 @@ const Register: React.FC = () => {
                   size: 'large',
                   prefix: <UserOutlined />,
                 }}
-                placeholder={'请输入用户名'}
+                placeholder={'账号'}
                 rules={[
                   {
                     required: true,
-                    message: '用户名是必填项！',
+                    message: '账号是必填项！',
                   },
                 ]}
               />
@@ -121,7 +125,7 @@ const Register: React.FC = () => {
                   size: 'large',
                   prefix: <LockOutlined />,
                 }}
-                placeholder={'请输入密码,两次输入密码保持一致'}
+                placeholder={'密码'}
                 rules={[
                   {
                     required: true,
@@ -135,21 +139,20 @@ const Register: React.FC = () => {
                   size: 'large',
                   prefix: <LockOutlined />,
                 }}
-                placeholder={'请输入密码,两次输入密码保持一致'}
+                placeholder={'重复密码'}
                 rules={[
                   {
                     required: true,
-                    message: '密码是必填项！',
+                    message: '重复密码是必填项！',
                   },
                 ]}
               />
             </>
           )}
-
         </LoginForm>
       </div>
       <Footer />
     </div>
   );
 };
-export default Register;
+export default Login;
