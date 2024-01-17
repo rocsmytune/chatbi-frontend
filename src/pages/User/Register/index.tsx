@@ -1,17 +1,15 @@
 import Footer from '@/components/Footer';
 import { listChartByPageUsingPost } from '@/services/chatbi/chartController';
-import { getLoginUserUsingGet, userLoginUsingPost } from '@/services/chatbi/userController';
+import {userRegisterUsingPost} from '@/services/chatbi/userController';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { LoginForm, ProFormText } from '@ant-design/pro-components';
 import { useEmotionCss } from '@ant-design/use-emotion-css';
-import { Helmet, history, useModel } from '@umijs/max';
+import { Helmet, history } from '@umijs/max';
 import { Alert, message, Tabs } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { flushSync } from 'react-dom';
-import { Link } from 'umi';
 import Settings from '../../../../config/defaultSettings';
 
-const LoginMessage: React.FC<{
+const RegisterMessage: React.FC<{
   content: string;
 }> = ({ content }) => {
   return (
@@ -25,10 +23,8 @@ const LoginMessage: React.FC<{
     />
   );
 };
-const Login: React.FC = () => {
-  const [userLoginState] = useState<API.LoginResult>({});
+const Register: React.FC = () => {
   const [type, setType] = useState<string>('account');
-  const {setInitialState } = useModel('@@initialState');
   const containerClassName = useEmotionCss(() => {
     return {
       display: 'flex',
@@ -46,28 +42,14 @@ const Login: React.FC = () => {
       console.error('res', res);
     });
   });
-  /**
-   * 获取用户信息
-   */
-  const fetchUserInfo = async () => {
-    const userInfo = await getLoginUserUsingGet();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
-  const handleSubmit = async (values: API.UserLoginRequest) => {
+
+  const handleSubmit = async (values: API.UserRegisterRequest) => {
     try {
-      // 登录
-      const res = await userLoginUsingPost(values);
+      // 注册
+      const res = await userRegisterUsingPost(values);
       if (res.code === 0) {
-        const defaultLoginSuccessMessage = '登录成功！';
-        message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
+        const defaultRegisterSuccessMessage = '注册成功！';
+        message.success(defaultRegisterSuccessMessage);
         const urlParams = new URL(window.location.href).searchParams;
         history.push(urlParams.get('redirect') || '/');
         return;
@@ -75,17 +57,16 @@ const Login: React.FC = () => {
         message.error(res.message);
       }
     } catch (error) {
-      const defaultLoginFailureMessage = '登录失败，请重试！';
+      const defaultLoginFailureMessage = '注册失败，请重试！';
       console.log(error);
       message.error(defaultLoginFailureMessage);
     }
   };
-  const { status, type: loginType } = userLoginState;
   return (
     <div className={containerClassName}>
       <Helmet>
         <title>
-          {'登录'}- {Settings.title}
+          {'注册'}- {Settings.title}
         </title>
       </Helmet>
       <div
@@ -103,7 +84,7 @@ const Login: React.FC = () => {
           title="Chat BI"
           subTitle={'Chat BI 是一个由AI支持的智能图表'}
           onFinish={async (values) => {
-            await handleSubmit(values as API.UserLoginRequest);
+            await handleSubmit(values as API.UserRegisterRequest);
           }}
         >
           <Tabs
@@ -113,7 +94,7 @@ const Login: React.FC = () => {
             items={[
               {
                 key: 'account',
-                label: '账户登录',
+                label: '账户注册',
               },
             ]}
           />
@@ -140,7 +121,21 @@ const Login: React.FC = () => {
                   size: 'large',
                   prefix: <LockOutlined />,
                 }}
-                placeholder={'请输入密码'}
+                placeholder={'请输入密码,两次输入密码保持一致'}
+                rules={[
+                  {
+                    required: true,
+                    message: '密码是必填项！',
+                  },
+                ]}
+              />
+              <ProFormText.Password
+                name="checkPassword"
+                fieldProps={{
+                  size: 'large',
+                  prefix: <LockOutlined />,
+                }}
+                placeholder={'请输入密码,两次输入密码保持一致'}
                 rules={[
                   {
                     required: true,
@@ -151,17 +146,10 @@ const Login: React.FC = () => {
             </>
           )}
 
-          <div
-            style={{
-              marginBottom: 24,
-            }}
-          >
-            <Link to="/user/register">注册新账户</Link>
-          </div>
         </LoginForm>
       </div>
       <Footer />
     </div>
   );
 };
-export default Login;
+export default Register;
