@@ -8,6 +8,7 @@ import { Helmet,history } from '@umijs/max';
 import { message,Tabs } from 'antd';
 import React,{ useEffect,useState } from 'react';
 import Settings from '../../../../config/defaultSettings';
+import {Link} from "@@/exports";
 
 const Login: React.FC = () => {
   const [type, setType] = useState<string>('account');
@@ -99,7 +100,7 @@ const Login: React.FC = () => {
             items={[
               {
                 key: 'account',
-                label: '账户密码注册',
+                label: '账户注册',
               },
             ]}
           />
@@ -149,6 +150,13 @@ const Login: React.FC = () => {
               />
             </>
           )}
+          <div
+            style={{
+              marginBottom: 24,
+            }}
+          >
+            <Link to="/user/login">登陆账户</Link>
+          </div>
         </LoginForm>
       </div>
       <Footer />
