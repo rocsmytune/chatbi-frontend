@@ -7,7 +7,8 @@
       { path: '/user/register', component: './User/Register' },
     ],
   },
-  { path: '/welcome', icon: 'smile', component: './Welcome' },
+  { path: '/', redirect: '/add_chart' },
+  { path: '/add_chart', icon: 'smile', component: './AddChart' },
   {
     path: '/admin',
     icon: 'crown',
